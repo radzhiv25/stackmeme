@@ -10,11 +10,10 @@ import { RelativeTime } from './RelativeTime';
 interface MemeCardProps {
   meme: Meme;
   onLike: (memeId: string) => void;
-  onComment: (memeId: string, comment: string) => void;
   onReact: (memeId: string, reactionType: Reaction['type']) => void;
 }
 
-const MemeCard: React.FC<MemeCardProps> = ({ meme, onLike, onComment, onReact }) => {
+const MemeCard: React.FC<MemeCardProps> = ({ meme, onLike, onReact }) => {
   const [showComments, setShowComments] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
 

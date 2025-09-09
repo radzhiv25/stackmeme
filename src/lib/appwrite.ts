@@ -8,7 +8,7 @@ client
 
 // Add error handling for WebSocket connections
 const originalSubscribe = client.subscribe;
-client.subscribe = function (channels, callback) {
+client.subscribe = function (channels: string | string[], callback: (payload: any) => void) {
     try {
         return originalSubscribe.call(this, channels, callback);
     } catch (error) {

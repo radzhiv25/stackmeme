@@ -1,8 +1,5 @@
 // Simple device fingerprinting for anonymous users
 export const getDeviceFingerprint = (): string => {
-    // Try to get a unique identifier for this device/browser
-    let fingerprint = '';
-
     // Use localStorage to store a persistent device ID
     const deviceIdKey = 'meme_vault_device_id';
     let deviceId = localStorage.getItem(deviceIdKey);

@@ -6,7 +6,7 @@ import { Card, CardContent } from './ui/card';
 import { Skeleton } from './ui/skeleton';
 
 const MemeFeed: React.FC = () => {
-    const { memes, addMeme, likeMeme, addComment, addReaction, loading } = useMeme();
+    const { memes, addMeme, likeMeme, addReaction, loading } = useMeme();
 
     if (loading) {
         return (
@@ -78,7 +78,6 @@ const MemeFeed: React.FC = () => {
                             key={meme.id}
                             meme={meme}
                             onLike={likeMeme}
-                            onComment={addComment}
                             onReact={addReaction}
                         />
                     ))}

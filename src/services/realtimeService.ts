@@ -26,23 +26,28 @@ export class RealtimeService {
             (response) => {
                 const { events, payload } = response;
 
+                // Type assertion for payload
+                const payloadData = payload as any;
+
                 // Check if this comment belongs to the meme we're watching
-                if (payload.memeId !== memeId) return;
+                if (payloadData.memeId !== memeId) return;
 
                 if (events.includes('databases.*.collections.*.documents.*.create')) {
                     // New comment added
                     const comment: Comment = {
-                        id: payload.$id,
-                        memeId: payload.memeId,
-                        text: payload.text,
-                        author: payload.author || 'Anonymous',
-                        authorId: payload.authorId || undefined,
-                        parentId: payload.parentId || undefined,
-                        depth: payload.depth || 0,
-                        likes: payload.likes || 0,
-                        repliesCount: payload.repliesCount || 0,
-                        isAnonymous: payload.isAnonymous || true,
-                        timestamp: payload.createdAt,
+                        id: payloadData.$id,
+                        memeId: payloadData.memeId,
+                        text: payloadData.text,
+                        author: payloadData.author || 'Anonymous',
+                        authorId: payloadData.authorId || undefined,
+                        parentId: payloadData.parentId || undefined,
+                        depth: payloadData.depth || 0,
+                        likes: payloadData.likes || 0,
+                        dislikes: payloadData.dislikes || 0,
+                        repliesCount: payloadData.repliesCount || 0,
+                        isAnonymous: payloadData.isAnonymous || true,
+                        createdAt: payloadData.createdAt,
+                        timestamp: payloadData.createdAt,
                         replies: []
                     };
                     callbacks.onCommentAdded?.(comment);
@@ -51,17 +56,19 @@ export class RealtimeService {
                 if (events.includes('databases.*.collections.*.documents.*.update')) {
                     // Comment updated (likes, replies count, etc.)
                     const comment: Comment = {
-                        id: payload.$id,
-                        memeId: payload.memeId,
-                        text: payload.text,
-                        author: payload.author || 'Anonymous',
-                        authorId: payload.authorId || undefined,
-                        parentId: payload.parentId || undefined,
-                        depth: payload.depth || 0,
-                        likes: payload.likes || 0,
-                        repliesCount: payload.repliesCount || 0,
-                        isAnonymous: payload.isAnonymous || true,
-                        timestamp: payload.createdAt,
+                        id: payloadData.$id,
+                        memeId: payloadData.memeId,
+                        text: payloadData.text,
+                        author: payloadData.author || 'Anonymous',
+                        authorId: payloadData.authorId || undefined,
+                        parentId: payloadData.parentId || undefined,
+                        depth: payloadData.depth || 0,
+                        likes: payloadData.likes || 0,
+                        dislikes: payloadData.dislikes || 0,
+                        repliesCount: payloadData.repliesCount || 0,
+                        isAnonymous: payloadData.isAnonymous || true,
+                        createdAt: payloadData.createdAt,
+                        timestamp: payloadData.createdAt,
                         replies: []
                     };
                     callbacks.onCommentUpdated?.(comment);
@@ -69,7 +76,7 @@ export class RealtimeService {
 
                 if (events.includes('databases.*.collections.*.documents.*.delete')) {
                     // Comment deleted
-                    callbacks.onCommentDeleted?.(payload.$id);
+                    callbacks.onCommentDeleted?.(payloadData.$id);
                 }
             }
         );
@@ -85,17 +92,21 @@ export class RealtimeService {
             (response) => {
                 const { events, payload } = response;
 
-                if (payload.memeId !== memeId) return;
+                // Type assertion for payload
+                const payloadData = payload as any;
+
+                if (payloadData.memeId !== memeId) return;
 
                 if (events.includes('databases.*.collections.*.documents.*.create')) {
                     const reaction: Reaction = {
-                        id: payload.$id,
-                        memeId: payload.memeId,
-                        type: payload.type,
-                        author: payload.author || 'Anonymous',
-                        authorId: payload.authorId || undefined,
-                        isAnonymous: payload.isAnonymous || true,
-                        timestamp: payload.createdAt,
+                        id: payloadData.$id,
+                        memeId: payloadData.memeId,
+                        type: payloadData.type,
+                        author: payloadData.author || 'Anonymous',
+                        authorId: payloadData.authorId || undefined,
+                        isAnonymous: payloadData.isAnonymous || true,
+                        createdAt: payloadData.createdAt,
+                        timestamp: payloadData.createdAt,
                     };
                     callbacks.onReactionAdded?.(reaction);
                 }
@@ -113,17 +124,21 @@ export class RealtimeService {
             (response) => {
                 const { events, payload } = response;
 
-                if (payload.commentId !== commentId) return;
+                // Type assertion for payload
+                const payloadData = payload as any;
+
+                if (payloadData.commentId !== commentId) return;
 
                 if (events.includes('databases.*.collections.*.documents.*.create')) {
                     const reaction: CommentReaction = {
-                        id: payload.$id,
-                        commentId: payload.commentId,
-                        type: payload.type,
-                        author: payload.author || 'Anonymous',
-                        authorId: payload.authorId || undefined,
-                        isAnonymous: payload.isAnonymous || true,
-                        timestamp: payload.createdAt,
+                        id: payloadData.$id,
+                        commentId: payloadData.commentId,
+                        type: payloadData.type,
+                        author: payloadData.author || 'Anonymous',
+                        authorId: payloadData.authorId || undefined,
+                        isAnonymous: payloadData.isAnonymous || true,
+                        createdAt: payloadData.createdAt,
+                        timestamp: payloadData.createdAt,
                     };
                     callbacks.onCommentReactionAdded?.(reaction);
                 }
@@ -141,10 +156,13 @@ export class RealtimeService {
             (response) => {
                 const { events, payload } = response;
 
-                if (payload.$id !== memeId) return;
+                // Type assertion for payload
+                const payloadData = payload as any;
+
+                if (payloadData.$id !== memeId) return;
 
                 if (events.includes('databases.*.collections.*.documents.*.update')) {
-                    callbacks.onMemeUpdated?.(payload.$id);
+                    callbacks.onMemeUpdated?.(payloadData.$id);
                 }
             }
         );
