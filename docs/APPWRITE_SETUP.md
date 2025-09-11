@@ -35,8 +35,10 @@ In your Appwrite console:
    - **Read**: `any` (for public viewing)
    - **Update**: `any` (for image updates)
    - **Delete**: `any` (for image deletion)
-4. Set file size limit to 10MB
+4. Set file size limit to 10MB (for memes)
 5. Allowed file extensions: `jpg`, `jpeg`, `png`, `gif`, `webp`
+
+**Note**: This single bucket is used for both memes and user avatars, which is optimal for the free plan. Avatar file size is limited to 5MB in the application code.
 
 ## 5. Create Database and Collections
 
@@ -137,6 +139,12 @@ VITE_APPWRITE_COMMENTS_COLLECTION_ID=comments
 VITE_APPWRITE_REACTIONS_COLLECTION_ID=reactions
 VITE_APPWRITE_COMMENT_REACTIONS_COLLECTION_ID=comment_reactions
 VITE_APPWRITE_STORAGE_BUCKET_ID=meme-images
+
+# Friend system variables (optional - for enhanced social features)
+VITE_APPWRITE_FRIENDS_COLLECTION_ID=friends
+VITE_APPWRITE_FRIEND_REQUESTS_COLLECTION_ID=friend_requests
+VITE_APPWRITE_USER_PROFILES_COLLECTION_ID=user_profiles
+VITE_APPWRITE_FRIEND_ACTIVITIES_COLLECTION_ID=friend_activities
 ```
 
 The `src/lib/appwrite.ts` file is already configured to use these environment variables.
@@ -212,9 +220,10 @@ Create these indexes for better performance:
 
 ### Advanced Features (When Authenticated)
 - ✅ User profiles and avatars
-- ✅ Personal meme collections
-- ✅ Follow system
-- ✅ Advanced search and filtering
+- ✅ Friend system with requests and management
+- ✅ Exclusive meme sharing (friends-only visibility)
+- ✅ Friend activity feed
+- ✅ Enhanced social experience
 - ✅ Data sync across devices
 
 ## 11. Next Steps
@@ -222,6 +231,19 @@ Create these indexes for better performance:
 1. **Set up Appwrite** following this guide
 2. **Test the anonymous flow** - upload memes, comment, react
 3. **Implement authentication** - add user registration/login
-4. **Add advanced features** - profiles, follow system, collections
-5. **Optimize performance** - add pagination, caching
-6. **Add moderation** - content filtering, reporting system wil
+4. **Set up friend system** - follow FRIEND_SYSTEM_SETUP.md for detailed instructions
+5. **Add advanced features** - profiles, friend management, exclusive sharing
+6. **Optimize performance** - add pagination, caching
+7. **Add moderation** - content filtering, reporting system
+
+## 12. Friend System Setup
+
+For enhanced social features and exclusive meme sharing, see the detailed guide:
+**[FRIEND_SYSTEM_SETUP.md](./FRIEND_SYSTEM_SETUP.md)**
+
+This includes:
+- User profiles with avatars and bios
+- Friend requests and management
+- Exclusive meme sharing (friends-only visibility)
+- Friend activity feed
+- Enhanced social experience

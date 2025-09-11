@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Auth from '../components/Auth';
+import LoginForm from '../components/Login';
 
 const Login: React.FC = () => {
     return (
@@ -15,7 +15,7 @@ const Login: React.FC = () => {
                     </p>
                 </div>
 
-                <Auth />
+                <LoginForm />
 
                 <div className="mt-6 text-center">
                     <p className="text-sm text-muted-foreground">

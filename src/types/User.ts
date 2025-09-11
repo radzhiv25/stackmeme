@@ -10,5 +10,12 @@ export interface User {
     status: boolean;
     passwordUpdate: string;
     accessedAt: string;
+    // Friend system fields
+    friendsCount?: number;
+    avatar?: string;
+    bio?: string;
+    isOnline?: boolean;
+    lastSeen?: string;
 }
+
 

@@ -10,7 +10,10 @@ export interface Meme {
   reactions: Reaction[];
   author?: string; // Optional for anonymous posts
   authorId?: string; // For authenticated users
+  authorAvatar?: string; // Avatar URL for the author
   isAnonymous: boolean; // Whether the meme was posted anonymously
+  visibility: 'public' | 'friends' | 'private' | 'anonymous'; // New visibility setting
+  friendsOnly?: boolean; // Legacy field for backward compatibility
 }
 
 export interface Comment {
@@ -56,6 +59,9 @@ export interface UploadMemeData {
   image: File;
   caption?: string;
   author?: string;
+  authorId?: string;
+  authorAvatar?: string;
   isAnonymous?: boolean;
+  visibility?: 'public' | 'friends' | 'private' | 'anonymous';
 }
 

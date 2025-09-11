@@ -6,6 +6,7 @@ import { Heart, MessageCircle, Share, MoreHorizontal, ThumbsUp, Laugh, Heart as 
 import type { Meme, Reaction } from '../types/Meme';
 import { CommentThread } from './CommentThread';
 import { RelativeTime } from './RelativeTime';
+import { easterEggService } from '../services/easterEggService';
 
 interface MemeCardProps {
   meme: Meme;
@@ -17,6 +18,7 @@ const MemeCard: React.FC<MemeCardProps> = ({ meme, onLike, onReact }) => {
   const [showComments, setShowComments] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
 
+
   const reactionIcons = {
     like: <ThumbsUp className="w-4 h-4" />,
     laugh: <Laugh className="w-4 h-4" />,
@@ -27,12 +29,45 @@ const MemeCard: React.FC<MemeCardProps> = ({ meme, onLike, onReact }) => {
   };
 
   const reactionColors = {
-    like: 'text-blue-500',
+    like: 'text-gray-600',
     laugh: 'text-yellow-500',
     love: 'text-red-500',
-    wow: 'text-purple-500',
+    wow: 'text-gray-600',
     sad: 'text-gray-500',
-    angry: 'text-orange-500',
+    angry: 'text-gray-600',
+  };
+
+  // Easter egg functions
+  const handleLike = () => {
+    onLike(meme.id);
+
+    // Show easter egg toast
+    easterEggService.toasts.like();
+
+    // Console easter egg
+    console.log(`👍 Liked meme ${meme.id}! ${easterEggService.ui.getRandomStackOverflowQuote()}`);
+  };
+
+  const handleComment = () => {
+    setShowComments(!showComments);
+
+    if (!showComments) {
+      // Show easter egg toast
+      easterEggService.toasts.comment();
+
+      // Console easter egg
+      console.log(`💬 Commenting on meme ${meme.id}! ${easterEggService.ui.getRandomDeveloperJoke()}`);
+    }
+  };
+
+  const handleReaction = (reactionType: Reaction['type']) => {
+    onReact(meme.id, reactionType);
+
+    // Show easter egg toast
+    easterEggService.toasts.like();
+
+    // Console easter egg
+    console.log(`🎭 Reacted with ${reactionType} to meme ${meme.id}! ${easterEggService.ui.getRandomStackOverflowQuote()}`);
   };
 
 
@@ -43,12 +78,22 @@ const MemeCard: React.FC<MemeCardProps> = ({ meme, onLike, onReact }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Avatar className="h-8 w-8">
-              <AvatarFallback>
-                {meme.author?.charAt(0).toUpperCase() || 'A'}
-              </AvatarFallback>
+              {meme.authorAvatar && !meme.isAnonymous ? (
+                <img
+                  src={meme.authorAvatar}
+                  alt={meme.author || 'User'}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <AvatarFallback>
+                  {meme.isAnonymous ? 'A' : (meme.author?.charAt(0).toUpperCase() || 'A')}
+                </AvatarFallback>
+              )}
             </Avatar>
             <div>
-              <p className="font-semibold text-sm">{meme.author || 'Anonymous'}</p>
+              <p className="font-semibold text-sm">
+                {meme.isAnonymous ? 'Anonymous' : (meme.author || 'Anonymous')}
+              </p>
               <p className="text-xs text-muted-foreground">
                 <RelativeTime
                   date={meme.uploadDate}
@@ -102,7 +147,7 @@ const MemeCard: React.FC<MemeCardProps> = ({ meme, onLike, onReact }) => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onLike(meme.id)}
+              onClick={handleLike}
               className="flex items-center space-x-1"
             >
               <Heart className={`w-4 h-4 ${meme.likes > 0 ? 'text-red-500 fill-red-500' : ''}`} />
@@ -112,7 +157,7 @@ const MemeCard: React.FC<MemeCardProps> = ({ meme, onLike, onReact }) => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowComments(!showComments)}
+              onClick={handleComment}
               className="flex items-center space-x-1"
             >
               <MessageCircle className="w-4 h-4" />
@@ -137,7 +182,7 @@ const MemeCard: React.FC<MemeCardProps> = ({ meme, onLike, onReact }) => {
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        onReact(meme.id, type as Reaction['type']);
+                        handleReaction(type as Reaction['type']);
                         setShowReactions(false);
                       }}
                       className={`w-8 h-8 p-0 ${reactionColors[type as Reaction['type']]}`}

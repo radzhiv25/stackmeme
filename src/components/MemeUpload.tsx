@@ -3,8 +3,9 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
-import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Users, Globe, Lock } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { easterEggService } from '../services/easterEggService';
 import type { UploadMemeData } from '../types/Meme';
 
 interface MemeUploadProps {
@@ -13,11 +14,13 @@ interface MemeUploadProps {
 
 const MemeUpload: React.FC<MemeUploadProps> = ({ onUpload }) => {
     const { user } = useAuth();
+    const friends: unknown[] = []; // Temporary workaround for friends
     const [isOpen, setIsOpen] = useState(false);
     const [image, setImage] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [caption, setCaption] = useState('');
     const [author, setAuthor] = useState('');
+    const [visibility, setVisibility] = useState<'public' | 'friends' | 'private' | 'anonymous'>('public');
     const [isDragging, setIsDragging] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -66,11 +69,26 @@ const MemeUpload: React.FC<MemeUploadProps> = ({ onUpload }) => {
                 image,
                 caption: caption.trim() || undefined,
                 author: isAuthenticated ? (user?.name || user?.email) : (author.trim() || 'Anonymous'),
-                isAnonymous: !isAuthenticated,
+                isAnonymous: !isAuthenticated || visibility === 'anonymous',
+                visibility: isAuthenticated ? visibility : 'public',
             });
+
+            // Show easter egg toast
+            easterEggService.toasts.upload();
+
+            // Console easter egg
+            console.log(`📤 Meme uploaded successfully! ${easterEggService.ui.getRandomStackOverflowQuote()}`);
+
             handleClose();
         } catch (error: unknown) {
-            setError(error instanceof Error ? error.message : 'Upload failed');
+            const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+            setError(errorMessage);
+
+            // Show easter egg error toast
+            easterEggService.toasts.error();
+
+            // Console easter egg
+            console.log(`❌ Upload failed: ${errorMessage}! ${easterEggService.ui.getRandomDeveloperJoke()}`);
         } finally {
             setLoading(false);
         }
@@ -82,6 +100,7 @@ const MemeUpload: React.FC<MemeUploadProps> = ({ onUpload }) => {
         setPreview(null);
         setCaption('');
         setAuthor('');
+        setVisibility('public');
         setError('');
         setLoading(false);
     };
@@ -94,7 +113,7 @@ const MemeUpload: React.FC<MemeUploadProps> = ({ onUpload }) => {
         <>
             <Button
                 onClick={() => setIsOpen(true)}
-                className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
+                className="w-full sm:w-auto border bg-gray-400 text-white dark:text-gray-900"
             >
                 <Upload className="w-4 h-4 mr-2" />
                 Upload Meme
@@ -207,6 +226,63 @@ const MemeUpload: React.FC<MemeUploadProps> = ({ onUpload }) => {
                                     rows={3}
                                 />
                             </div>
+
+                            {isAuthenticated && (
+                                <div>
+                                    <label className="text-sm font-medium mb-2 block">
+                                        Who can see this meme?
+                                    </label>
+                                    <div className="grid grid-cols-4 gap-2">
+                                        <Button
+                                            type="button"
+                                            variant={visibility === 'public' ? 'default' : 'outline'}
+                                            size="sm"
+                                            onClick={() => setVisibility('public')}
+                                            className="flex items-center space-x-1"
+                                        >
+                                            <Globe className="w-4 h-4" />
+                                            <span>Public</span>
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant={visibility === 'friends' ? 'default' : 'outline'}
+                                            size="sm"
+                                            onClick={() => setVisibility('friends')}
+                                            className="flex items-center space-x-1"
+                                            disabled={friends.length === 0}
+                                        >
+                                            <Users className="w-4 h-4" />
+                                            <span>Friends</span>
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant={visibility === 'private' ? 'default' : 'outline'}
+                                            size="sm"
+                                            onClick={() => setVisibility('private')}
+                                            className="flex items-center space-x-1"
+                                        >
+                                            <Lock className="w-4 h-4" />
+                                            <span>Private</span>
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant={visibility === 'anonymous' ? 'default' : 'outline'}
+                                            size="sm"
+                                            onClick={() => setVisibility('anonymous')}
+                                            className="flex items-center space-x-1"
+                                        >
+                                            <Users className="w-4 h-4" />
+                                            <span>Anonymous</span>
+                                        </Button>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        {visibility === 'public' && 'Everyone can see this meme'}
+                                        {visibility === 'friends' && (friends.length > 0 ? `Only your ${friends.length} friend${friends.length !== 1 ? 's' : ''} can see this meme` : 'Add friends first to use this option')}
+                                        {visibility === 'private' && 'Only you can see this meme'}
+                                        {visibility === 'anonymous' && 'Post as anonymous (no profile info shown)'}
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex gap-2 pt-4">

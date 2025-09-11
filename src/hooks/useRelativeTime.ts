@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export const useRelativeTime = (dateString: string, updateInterval: number = 1000) => {
+export const useRelativeTime = (dateString: string, updateInterval: number = 30000) => {
   const [relativeTime, setRelativeTime] = useState('');
 
   const formatRelativeTime = (dateString: string) => {
@@ -68,3 +68,4 @@ export const useRelativeTime = (dateString: string, updateInterval: number = 100
 
   return relativeTime;
 };
+

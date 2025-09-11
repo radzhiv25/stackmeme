@@ -7,6 +7,7 @@ import { MessageCircle, Send } from 'lucide-react';
 import type { Comment, CommentReaction } from '../types/Meme';
 import { commentService, commentReactionService } from '../services/appwriteService';
 import { CommentItem } from './CommentItem';
+import { useAuth } from '../hooks/useAuth';
 
 interface CommentThreadProps {
     memeId: string;
@@ -17,6 +18,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
     memeId,
     initialComments = []
 }) => {
+    const { user, userProfile } = useAuth();
     const [comments, setComments] = useState<Comment[]>(initialComments);
     const [newComment, setNewComment] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -130,7 +132,15 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
 
         setIsSubmitting(true);
         try {
-            const comment = await commentService.createComment(memeId, newComment);
+
+            const comment = await commentService.createComment(
+                memeId,
+                newComment,
+                undefined, // parentId
+                userProfile?.name || user?.name || user?.email || 'Anonymous', // author
+                user?.$id || undefined, // authorId
+                !user // isAnonymous
+            );
             setComments(prev => {
                 // Check if comment already exists to prevent duplicates
                 const existingComment = prev.find(c => c.id === comment.id);
@@ -149,7 +159,14 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
 
     const handleReply = async (parentId: string, text: string) => {
         try {
-            const reply = await commentService.createComment(memeId, text, parentId);
+            const reply = await commentService.createComment(
+                memeId,
+                text,
+                parentId,
+                userProfile?.name || user?.name || user?.email || 'Anonymous', // author
+                user?.$id || undefined, // authorId
+                !user // isAnonymous
+            );
 
             // Update the comments state to include the new reply
             setComments(prev => {
@@ -186,7 +203,12 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
 
     const handleReaction = async (commentId: string, type: CommentReaction['type']) => {
         try {
-            await commentReactionService.createCommentReaction(commentId, type);
+            await commentReactionService.createCommentReaction(
+                commentId,
+                type,
+                userProfile?.name || user?.name || user?.email || 'Anonymous',
+                user?.$id
+            );
 
             // Reload the specific comment to get updated counts from server
             const updatedComment = await commentService.getComment(commentId);
@@ -308,7 +330,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
                         <Button
                             onClick={handleSubmitComment}
                             disabled={!newComment.trim() || isSubmitting}
-                            className="flex items-center space-x-2 text-sm"
+                            className="flex items-center space-x-2 text-sm bg-gray-400"
                             size="sm"
                         >
                             <Send className="w-4 h-4" />

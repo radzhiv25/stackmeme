@@ -12,7 +12,7 @@ const STORAGE_BUCKET_ID = import.meta.env.VITE_APPWRITE_STORAGE_BUCKET_ID;
 // Meme Services
 export const memeService = {
     // Get all memes with pagination
-    async getMemes(limit: number = 20, offset: number = 0, anonymousOnly: boolean = false): Promise<Meme[]> {
+    async getMemes(limit: number = 20, offset: number = 0, anonymousOnly: boolean = false, userId?: string, friendIds?: string[]): Promise<Meme[]> {
         try {
             const queries = [
                 Query.orderDesc('createdAt'),
@@ -23,6 +23,28 @@ export const memeService = {
             // Filter for anonymous memes only if requested
             if (anonymousOnly) {
                 queries.push(Query.equal('isAnonymous', true));
+            } else if (userId) {
+                // Show public memes + user's own memes + friends' memes + anonymous memes
+                const visibilityQueries = [
+                    Query.equal('visibility', 'public'),
+                    Query.equal('visibility', 'anonymous'),
+                    Query.and([
+                        Query.equal('authorId', userId),
+                        Query.notEqual('visibility', 'private')
+                    ])
+                ];
+
+                // Add friends' memes if user has friends
+                if (friendIds && friendIds.length > 0) {
+                    visibilityQueries.push(
+                        Query.and([
+                            Query.equal('visibility', 'friends'),
+                            Query.equal('authorId', friendIds)
+                        ])
+                    );
+                }
+
+                queries.push(Query.or(visibilityQueries));
             }
 
             const response = await databases.listDocuments(
@@ -36,14 +58,17 @@ export const memeService = {
                 imageUrl: doc.imageUrl,
                 caption: doc.caption || undefined,
                 uploadDate: doc.createdAt,
-                createdAt: doc.createdAt, // Add createdAt field
+                createdAt: doc.createdAt,
                 likes: doc.likes || 0,
-                dislikes: doc.dislikes || 0, // Add dislikes field
+                dislikes: doc.dislikes || 0,
                 comments: [], // Will be loaded separately
                 reactions: [], // Will be loaded separately
                 author: doc.author || 'Anonymous',
                 authorId: doc.authorId || undefined,
-                isAnonymous: doc.isAnonymous || true,
+                authorAvatar: doc.authorAvatar || undefined,
+                isAnonymous: doc.isAnonymous || false,
+                visibility: doc.visibility || 'public',
+                friendsOnly: doc.friendsOnly || false,
             }));
         } catch (error) {
             console.error('Error fetching memes:', error);
@@ -54,6 +79,7 @@ export const memeService = {
     // Create a new meme
     async createMeme(data: UploadMemeData, imageFileId: string, imageUrl: string): Promise<Meme> {
         try {
+            const now = new Date().toISOString();
             const response = await databases.createDocument(
                 DATABASE_ID,
                 MEMES_COLLECTION_ID,
@@ -63,12 +89,17 @@ export const memeService = {
                     imageUrl: imageUrl,
                     caption: data.caption || '',
                     author: data.author || 'Anonymous',
-                    authorId: null, // Will be set if user is authenticated
+                    authorId: data.authorId || null,
+                    authorAvatar: data.authorAvatar || null,
                     likes: 0,
                     dislikes: 0, // Add dislikes field
                     commentsCount: 0,
                     reactionsCount: 0,
-                    isAnonymous: data.isAnonymous ?? true, // Use provided value or default to true
+                    isAnonymous: data.isAnonymous ?? false, // Use provided value or default to false
+                    visibility: data.visibility || 'public', // Default to public
+                    friendsOnly: data.visibility === 'friends', // Legacy field for backward compatibility
+                    createdAt: now,
+                    updatedAt: now,
                 }
             );
 
@@ -84,7 +115,10 @@ export const memeService = {
                 reactions: [],
                 author: response.author || 'Anonymous',
                 authorId: response.authorId || undefined,
-                isAnonymous: response.isAnonymous || true,
+                authorAvatar: response.authorAvatar || undefined,
+                isAnonymous: response.isAnonymous || false,
+                visibility: response.visibility || 'public',
+                friendsOnly: response.friendsOnly || false,
             };
         } catch (error) {
             console.error('Error creating meme:', error);
@@ -114,12 +148,63 @@ export const memeService = {
     },
 
     // Delete a meme
-    async deleteMeme(memeId: string): Promise<void> {
+    async deleteMeme(memeId: string, authorId?: string): Promise<void> {
         try {
             await databases.deleteDocument(DATABASE_ID, MEMES_COLLECTION_ID, memeId);
+
+            // Update user's meme count if authorId is provided
+            if (authorId) {
+                try {
+                    const { friendService } = await import('./friendService');
+                    await friendService.updateMemeCount(authorId);
+                } catch (countError) {
+                    console.error('Error updating meme count after deletion:', countError);
+                    // Don't throw error for count update failure
+                }
+            }
         } catch (error) {
             console.error('Error deleting meme:', error);
             throw error;
+        }
+    },
+
+    // Update existing memes with author avatars
+    async updateMemesWithAvatars(): Promise<void> {
+        try {
+            // Get all memes
+            const response = await databases.listDocuments(
+                DATABASE_ID,
+                MEMES_COLLECTION_ID
+            );
+
+            const { friendService } = await import('./friendService');
+
+            // Update each meme with author avatar
+            for (const meme of response.documents) {
+                if (meme.authorId && !meme.authorAvatar) {
+                    try {
+                        // Get user profile to get avatar
+                        const userProfile = await friendService.getUserProfile(meme.authorId);
+
+                        if (userProfile.avatar) {
+                            // Update meme with avatar
+                            await databases.updateDocument(
+                                DATABASE_ID,
+                                MEMES_COLLECTION_ID,
+                                meme.$id,
+                                {
+                                    authorAvatar: userProfile.avatar,
+                                    updatedAt: new Date().toISOString()
+                                }
+                            );
+                        }
+                    } catch (error) {
+                        console.error(`Error updating meme ${meme.$id} with avatar:`, error);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error updating memes with avatars:', error);
         }
     }
 };
@@ -151,7 +236,7 @@ export const commentService = {
                 repliesCount: doc.repliesCount || 0,
                 timestamp: doc.createdAt,
                 createdAt: doc.createdAt, // Add createdAt field
-                isAnonymous: doc.isAnonymous || true,
+                isAnonymous: doc.isAnonymous || false,
             }));
         } catch (error) {
             console.error('Error fetching comments:', error);
@@ -160,7 +245,7 @@ export const commentService = {
     },
 
     // Create a comment
-    async createComment(memeId: string, text: string, parentId?: string): Promise<Comment> {
+    async createComment(memeId: string, text: string, parentId?: string, author?: string, authorId?: string, isAnonymous?: boolean): Promise<Comment> {
         try {
             // Calculate depth based on parent
             let depth = 0;
@@ -169,6 +254,7 @@ export const commentService = {
                 depth = (parentComment.depth || 0) + 1;
             }
 
+            const now = new Date().toISOString();
             const response = await databases.createDocument(
                 DATABASE_ID,
                 COMMENTS_COLLECTION_ID,
@@ -176,14 +262,16 @@ export const commentService = {
                 {
                     memeId: memeId,
                     text: text,
-                    author: 'Anonymous', // Will be updated if user is authenticated
-                    authorId: null,
+                    author: author || 'Anonymous',
+                    authorId: authorId || null,
                     parentId: parentId || null,
                     depth: depth,
                     likes: 0,
                     dislikes: 0, // Add dislikes field
                     repliesCount: 0,
-                    isAnonymous: true,
+                    isAnonymous: isAnonymous ?? false,
+                    createdAt: now,
+                    updatedAt: now,
                 }
             );
 
@@ -224,7 +312,7 @@ export const commentService = {
                 repliesCount: response.repliesCount || 0,
                 timestamp: response.createdAt,
                 createdAt: response.createdAt, // Add createdAt field
-                isAnonymous: response.isAnonymous || true,
+                isAnonymous: response.isAnonymous || false,
             };
         } catch (error) {
             console.error('Error creating comment:', error);
@@ -250,7 +338,7 @@ export const commentService = {
                 repliesCount: response.repliesCount || 0,
                 timestamp: response.createdAt,
                 createdAt: response.createdAt,
-                isAnonymous: response.isAnonymous || true,
+                isAnonymous: response.isAnonymous || false,
             };
         } catch (error) {
             console.error('Error fetching comment:', error);
@@ -283,7 +371,7 @@ export const commentService = {
                 repliesCount: doc.repliesCount || 0,
                 timestamp: doc.createdAt,
                 createdAt: doc.createdAt, // Add createdAt field
-                isAnonymous: doc.isAnonymous || true,
+                isAnonymous: doc.isAnonymous || false,
                 replies: [] as Comment[]
             }));
 
@@ -414,7 +502,7 @@ export const reactionService = {
     },
 
     // Create a reaction
-    async createReaction(memeId: string, type: Reaction['type']): Promise<Reaction> {
+    async createReaction(memeId: string, type: Reaction['type'], author?: string, authorId?: string): Promise<Reaction> {
         try {
             const response = await databases.createDocument(
                 DATABASE_ID,
@@ -423,9 +511,9 @@ export const reactionService = {
                 {
                     memeId: memeId,
                     type: type,
-                    author: 'Anonymous', // Will be updated if user is authenticated
-                    authorId: null,
-                    isAnonymous: true,
+                    author: author || 'Anonymous',
+                    authorId: authorId || null,
+                    isAnonymous: !authorId,
                 }
             );
 
@@ -448,7 +536,7 @@ export const reactionService = {
                 authorId: response.authorId || undefined,
                 timestamp: response.createdAt,
                 createdAt: response.createdAt,
-                isAnonymous: response.isAnonymous || true,
+                isAnonymous: response.isAnonymous || false,
             };
         } catch (error) {
             console.error('Error creating reaction:', error);
@@ -459,7 +547,7 @@ export const reactionService = {
 
 // Storage Services
 export const storageService = {
-    // Upload image to Appwrite Storage
+    // Upload image to Appwrite Storage (used for both memes and avatars)
     async uploadImage(file: File): Promise<{ fileId: string; url: string }> {
         try {
             const response = await storage.createFile(
@@ -479,6 +567,40 @@ export const storageService = {
             console.error('Error uploading image:', error);
             throw error;
         }
+    },
+
+    // Upload avatar image (uses same bucket as memes for free plan optimization)
+    async uploadAvatar(file: File): Promise<{ fileId: string; url: string }> {
+        // Validate file size (avatars should be smaller)
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            throw new Error('Avatar file size must be less than 5MB');
+        }
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            throw new Error('Avatar must be a valid image file (JPEG, PNG, GIF, WebP)');
+        }
+
+        return this.uploadImage(file);
+    },
+
+    // Upload meme image
+    async uploadMeme(file: File): Promise<{ fileId: string; url: string }> {
+        // Validate file size (memes can be larger)
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+            throw new Error('Meme file size must be less than 10MB');
+        }
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            throw new Error('Meme must be a valid image file (JPEG, PNG, GIF, WebP)');
+        }
+
+        return this.uploadImage(file);
     },
 
     // Delete image from storage
@@ -522,10 +644,9 @@ export const commentReactionService = {
     },
 
     // Create a comment reaction
-    async createCommentReaction(commentId: string, type: CommentReaction['type']): Promise<CommentReaction> {
+    async createCommentReaction(commentId: string, type: CommentReaction['type'], author?: string, authorId?: string): Promise<CommentReaction> {
         try {
-            const userId = getUserId();
-            console.log(`User ${userId} reacting to comment ${commentId} with ${type}`);
+            const userId = authorId || getUserId();
 
             // First, get current counts for this comment
             const comment = await databases.getDocument(DATABASE_ID, COMMENTS_COLLECTION_ID, commentId);
@@ -587,8 +708,6 @@ export const commentReactionService = {
                 }
             }
 
-            console.log(`New counts for comment ${commentId}: likes=${newLikes}, dislikes=${newDislikes}`);
-
             // Create new reaction if needed
             let response;
             if (shouldCreateReaction) {
@@ -599,9 +718,9 @@ export const commentReactionService = {
                     {
                         commentId: commentId,
                         type: type,
-                        author: 'Anonymous',
+                        author: author || 'Anonymous',
                         authorId: userId,
-                        isAnonymous: true,
+                        isAnonymous: !userId,
                     }
                 );
             } else {
@@ -610,10 +729,10 @@ export const commentReactionService = {
                     $id: 'deleted',
                     commentId: commentId,
                     type: type,
-                    author: 'Anonymous',
+                    author: author || 'Anonymous',
                     authorId: userId,
                     createdAt: new Date().toISOString(),
-                    isAnonymous: true,
+                    isAnonymous: !userId,
                 };
             }
 
@@ -628,8 +747,6 @@ export const commentReactionService = {
                 }
             );
 
-            console.log(`Updated comment ${commentId} with likes=${newLikes}, dislikes=${newDislikes}`);
-
             return {
                 id: response.$id,
                 commentId: response.commentId,
@@ -638,7 +755,7 @@ export const commentReactionService = {
                 authorId: response.authorId || undefined,
                 timestamp: response.createdAt,
                 createdAt: response.createdAt,
-                isAnonymous: response.isAnonymous || true,
+                isAnonymous: response.isAnonymous || false,
             };
         } catch (error) {
             console.error('Error creating comment reaction:', error);
@@ -664,14 +781,12 @@ export const commentReactionService = {
 // Meme Reaction Services
 export const memeReactionService = {
     // Create a meme reaction (like or dislike)
-    async createMemeReaction(memeId: string, type: 'like' | 'dislike'): Promise<void> {
+    async createMemeReaction(memeId: string, type: 'like' | 'dislike', author?: string, authorId?: string): Promise<void> {
         try {
             // First, get current counts for this meme
             const meme = await databases.getDocument(DATABASE_ID, MEMES_COLLECTION_ID, memeId);
             const currentLikes = meme.likes || 0;
             const currentDislikes = meme.dislikes || 0;
-
-            console.log(`Current counts for meme ${memeId}: likes=${currentLikes}, dislikes=${currentDislikes}`);
 
             // Calculate new counts based on reaction type (additive logic)
             let newLikes = currentLikes;
@@ -685,8 +800,6 @@ export const memeReactionService = {
                 // Keep existing likes unchanged
             }
 
-            console.log(`New counts for meme ${memeId}: likes=${newLikes}, dislikes=${newDislikes}`);
-
             // Create the reaction
             await databases.createDocument(
                 DATABASE_ID,
@@ -695,8 +808,9 @@ export const memeReactionService = {
                 {
                     memeId: memeId,
                     type: type,
-                    author: 'Anonymous', // Will be updated if user is authenticated
-                    isAnonymous: true,
+                    author: author || 'Anonymous',
+                    authorId: authorId || null,
+                    isAnonymous: !authorId,
                 }
             );
 
@@ -710,8 +824,6 @@ export const memeReactionService = {
                     dislikes: newDislikes,
                 }
             );
-
-            console.log(`Updated meme ${memeId} with likes=${newLikes}, dislikes=${newDislikes}`);
         } catch (error) {
             console.error('Error creating meme reaction:', error);
             throw error;
