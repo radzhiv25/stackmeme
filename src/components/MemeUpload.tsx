@@ -113,7 +113,7 @@ const MemeUpload: React.FC<MemeUploadProps> = ({ onUpload }) => {
         <>
             <Button
                 onClick={() => setIsOpen(true)}
-                className="w-full sm:w-auto border bg-gray-400 text-white dark:text-gray-900"
+                className="w-full sm:w-auto border bg-gray-400 text-white"
             >
                 <Upload className="w-4 h-4 mr-2" />
                 Upload Meme
@@ -292,7 +292,7 @@ const MemeUpload: React.FC<MemeUploadProps> = ({ onUpload }) => {
                             <Button
                                 type="submit"
                                 disabled={!image || loading}
-                                className="flex-1 bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 text-white dark:text-gray-900"
+                                className="flex-1 bg-gray-900 hover:bg-gray-800   "
                             >
                                 {loading ? 'Uploading...' : 'Upload Meme'}
                             </Button>

@@ -126,7 +126,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
 
     return (
         <div className="space-y-1">
-            <div className={`flex ${depth > 0 ? `${getIndentClass(depth)} border-l-2 border-gray-200 dark:border-gray-700` : ''}`}>
+            <div className={`flex ${depth > 0 ? `${getIndentClass(depth)} border-l-2 border-gray-200  ` : ''}`}>
                 {/* Collapse/Expand Button */}
                 <div className="flex flex-col items-center mr-2">
                     <Button
@@ -143,29 +143,29 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                 <div className="flex-1 min-w-0">
                     {/* Comment Header */}
                     <div className="flex items-center space-x-2 mb-1">
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        <span className="text-sm font-medium text-gray-900  ">
                             {comment.author || 'Anonymous'}
                         </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-xs text-gray-500  ">
                             <RelativeTime
                                 date={comment.timestamp}
                                 className="text-gray-500"
                             />
                         </span>
                         {comment.isAnonymous && (
-                            <span className="text-xs text-gray-400 dark:text-gray-500">
+                            <span className="text-xs text-gray-400  ">
                                 • anonymous
                             </span>
                         )}
                     </div>
 
                     {/* Comment Text */}
-                    <div className="text-sm text-gray-800 dark:text-gray-200 mb-2 whitespace-pre-wrap">
+                    <div className="text-sm text-gray-800 mb-2 whitespace-pre-wrap">
                         {comment.text}
                     </div>
 
                     {/* Comment Actions */}
-                    <div className="flex justify-between items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+                    <div className="flex justify-between items-center space-x-4 text-xs text-gray-500  ">
                         <div className="flex items-center space-x-1">
                             {/* Voting */}
                             <div className="flex items-center space-x-1">
@@ -226,7 +226,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
             {/* Reply form */}
             {showReplyForm && canReply && (
                 <div className={`mt-2 ${getIndentClass(depth + 1)}`}>
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded border p-3">
+                    <div className="bg-gray-50   rounded border p-3">
                         <Textarea
                             placeholder={`Reply to ${comment.author || 'Anonymous'}...`}
                             value={replyText}

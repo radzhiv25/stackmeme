@@ -24,19 +24,19 @@ export const DeleteCommentDialog: React.FC<DeleteCommentDialogProps> = ({
                 <DialogHeader>
                     <div className="flex items-center space-x-2">
                         <div className="flex-shrink-0">
-                            <div className="w-10 h-10 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
-                                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                            <div className="w-10 h-10 bg-red-100  /20 rounded-full flex items-center justify-center">
+                                <AlertTriangle className="w-5 h-5 text-red-600" />
                             </div>
                         </div>
                         <div>
-                            <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            <DialogTitle className="text-lg font-semibold text-gray-900  ">
                                 Delete Comment
                             </DialogTitle>
                         </div>
                     </div>
                 </DialogHeader>
 
-                <DialogDescription className="text-sm text-gray-600 dark:text-gray-400">
+                <DialogDescription className="text-sm text-gray-600  ">
                     Are you sure you want to delete this comment by <span className="font-medium">{commentAuthor}</span>?
                     This action cannot be undone and will remove the comment and all its replies.
                 </DialogDescription>

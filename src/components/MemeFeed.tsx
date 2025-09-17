@@ -14,6 +14,7 @@ const MemeFeed: React.FC = () => {
                 <div className="flex justify-center">
                     <Skeleton className="h-10 w-32" />
                 </div>
+                <div className="">
                 {[...Array(3)].map((_, i) => (
                     <Card key={i} className="w-full max-w-lg mx-auto">
                         <CardContent className="p-6 space-y-4">
@@ -35,6 +36,7 @@ const MemeFeed: React.FC = () => {
                         </CardContent>
                     </Card>
                 ))}
+                </div>
             </div>
         );
     }

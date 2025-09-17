@@ -22,10 +22,10 @@ const Friends: React.FC = () => {
         <div className="space-y-8">
             {/* Welcome Section */}
             <div className="text-center">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
                     Friends & Activity
                 </h1>
-                <p className="text-lg text-gray-600 dark:text-gray-300">
+                <p className="text-lg text-gray-600">
                     Manage your friends and see what they're up to!
                 </p>
             </div>

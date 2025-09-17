@@ -294,7 +294,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                    <div className="text-center py-4 text-gray-500  ">
                         Loading comments...
                     </div>
                 </CardContent>
@@ -303,15 +303,15 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
     }
 
     return (
-        <div className="bg-white dark:bg-gray-900 rounded-lg border">
-            <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+        <div className="bg-white   rounded-lg border">
+            <div className="px-4 py-3 border-b border-gray-200  ">
+                <h3 className="text-sm font-medium text-gray-900  ">
                     Comments ({countAllComments(comments)})
                 </h3>
             </div>
             <div className="p-4 space-y-4">
                 {/* New comment form */}
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                <div className="bg-gray-50   rounded-lg p-3">
                     <div className="flex items-start space-x-3">
                         <Avatar className="w-8 h-8">
                             <AvatarFallback>A</AvatarFallback>
@@ -321,7 +321,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
                                 placeholder="What are your thoughts?"
                                 value={newComment}
                                 onChange={(e) => setNewComment(e.target.value)}
-                                className="min-h-[80px] text-sm border-gray-300 dark:border-gray-600"
+                                className="min-h-[80px] text-sm border-gray-300  "
                                 rows={3}
                             />
                         </div>
@@ -342,7 +342,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
                 {/* Comments list */}
                 <div className="space-y-1">
                     {comments.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <div className="text-center py-8 text-gray-500  ">
                             <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
                             <p className="text-sm">No comments yet. Be the first to comment!</p>
                         </div>

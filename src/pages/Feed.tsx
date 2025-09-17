@@ -10,10 +10,10 @@ const Feed: React.FC = () => {
         <div className="space-y-8">
             {/* Welcome Section */}
             <div className="text-center">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
                     Welcome back, {user?.name || user?.email}! 👋
                 </h1>
-                <p className="text-lg text-gray-600 dark:text-gray-300">
+                <p className="text-lg text-gray-600">
                     Your personalized meme feed is ready!
                 </p>
             </div>
