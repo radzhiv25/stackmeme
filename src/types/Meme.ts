@@ -14,6 +14,8 @@ export interface Meme {
   isAnonymous: boolean; // Whether the meme was posted anonymously
   visibility: 'public' | 'friends' | 'private' | 'anonymous'; // New visibility setting
   friendsOnly?: boolean; // Legacy field for backward compatibility
+  userLikes?: string[]; // Array of user IDs who have liked this meme
+  userDislikes?: string[]; // Array of user IDs who have disliked this meme
 }
 
 export interface Comment {

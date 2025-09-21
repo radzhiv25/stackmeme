@@ -7,6 +7,8 @@ import type { Meme, Reaction } from '../types/Meme';
 import { CommentThread } from './CommentThread';
 import { RelativeTime } from './RelativeTime';
 import { easterEggService } from '../services/easterEggService';
+import { useAuth } from '../hooks/useAuth';
+import { anonymousLikeStorage } from '../utils/anonymousLikeStorage';
 
 interface MemeCardProps {
   meme: Meme;
@@ -17,6 +19,12 @@ interface MemeCardProps {
 const MemeCard: React.FC<MemeCardProps> = ({ meme, onLike, onReact }) => {
   const [showComments, setShowComments] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
+  const { user } = useAuth();
+
+  // Check if current user has liked this meme
+  const hasUserLiked = user?.$id
+    ? (meme.userLikes || []).includes(user.$id)
+    : anonymousLikeStorage.hasLikedMeme(meme.id);
 
 
   const reactionIcons = {
@@ -45,7 +53,11 @@ const MemeCard: React.FC<MemeCardProps> = ({ meme, onLike, onReact }) => {
     easterEggService.toasts.like();
 
     // Console easter egg
-    console.log(`👍 Liked meme ${meme.id}! ${easterEggService.ui.getRandomStackOverflowQuote()}`);
+    if (hasUserLiked) {
+      console.log(`👎 Unliked meme ${meme.id}! ${easterEggService.ui.getRandomStackOverflowQuote()}`);
+    } else {
+      console.log(`👍 Liked meme ${meme.id}! ${easterEggService.ui.getRandomStackOverflowQuote()}`);
+    }
   };
 
   const handleComment = () => {
@@ -148,9 +160,9 @@ const MemeCard: React.FC<MemeCardProps> = ({ meme, onLike, onReact }) => {
               variant="ghost"
               size="sm"
               onClick={handleLike}
-              className="flex items-center space-x-1"
+              className={`flex items-center space-x-1 ${hasUserLiked ? 'text-red-500' : ''}`}
             >
-              <Heart className={`w-4 h-4 ${meme.likes > 0 ? 'text-red-500 fill-red-500' : ''}`} />
+              <Heart className={`w-4 h-4 ${hasUserLiked ? 'text-red-500 fill-red-500' : ''}`} />
               <span>{meme.likes}</span>
             </Button>
 

@@ -75,7 +75,7 @@ const Landing: React.FC = () => {
         <div className="min-h-screen">
             {/* Hero Section */}
             <section className="relative overflow-hidden">
-                <div className="container mx-auto px-4 py-20 lg:py-32 h-[60vh]">
+                <div className="container mx-auto px-4 py-20 lg:py-32 md:h-[60vh]">
                     <div className="max-w-4xl mx-auto text-center">
                         <h1
                             className="text-5xl lg:text-7xl font-bold bg-gradient-to-br from-gray-900 via-gray-800 to-gray-600 text-transparent bg-clip-text mb-6 cursor-pointer flex items-center justify-center gap-4"
