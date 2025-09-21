@@ -149,7 +149,7 @@ export const memeService = {
 
                 if (hasLiked) {
                     // User already liked, so unlike
-                    newUserLikes = currentUserLikes.filter(id => id !== userId);
+                    newUserLikes = currentUserLikes.filter((id: string) => id !== userId);
                     newLikes = currentLikes - 1;
                     liked = false;
                 } else {
@@ -160,7 +160,7 @@ export const memeService = {
 
                     // If user had disliked, remove from dislikes
                     if (hasDisliked) {
-                        newUserDislikes = currentUserDislikes.filter(id => id !== userId);
+                        newUserDislikes = currentUserDislikes.filter((id: string) => id !== userId);
                         newDislikes = Math.max(0, currentDislikes - 1);
                     }
                 }
