@@ -138,6 +138,18 @@ const Landing: React.FC = () => {
                         </div>
                     </div>
                 </div>
+                <div className="w-max mx-auto text-center">
+                    <p className="text-gray-600 my-2">StackMeme is on Peerlist Launchpad</p>
+                    <a href="https://peerlist.io/radzhiv/project/stackmeme--a-meme-space-for-developers" target="_blank" rel="noreferrer">
+                        <img
+                            src="https://peerlist.io/api/v1/projects/embed/PRJHEOG68DDRQB9MP29JBG7EDGM968?showUpvote=true&theme=light"
+                            alt="StackMeme - A Meme Space for Developers"
+                            style={{ width: "auto", height: "72px" }}
+                        />
+                    </a>
+
+                </div>
+
             </section>
 
             <section className="py-20">
