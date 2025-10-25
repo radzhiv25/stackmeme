@@ -7,7 +7,7 @@ import type { Meme, Reaction } from '../types/Meme';
 import { CommentThread } from './CommentThread';
 import { RelativeTime } from './RelativeTime';
 import { easterEggService } from '../services/easterEggService';
-import { useAuth } from '../hooks/useAuth';
+// Removed useAuth import since we now use localStorage for all users
 import { anonymousLikeStorage } from '../utils/anonymousLikeStorage';
 
 interface MemeCardProps {
@@ -19,12 +19,11 @@ interface MemeCardProps {
 const MemeCard: React.FC<MemeCardProps> = ({ meme, onLike, onReact }) => {
   const [showComments, setShowComments] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
-  const { user } = useAuth();
+  // Removed unused user import since we now use localStorage for all users
 
   // Check if current user has liked this meme
-  const hasUserLiked = user?.$id
-    ? (meme.userLikes || []).includes(user.$id)
-    : anonymousLikeStorage.hasLikedMeme(meme.id);
+  // Both authenticated and anonymous users use localStorage for toggle functionality
+  const hasUserLiked = anonymousLikeStorage.hasLikedMeme(meme.id);
 
 
   const reactionIcons = {

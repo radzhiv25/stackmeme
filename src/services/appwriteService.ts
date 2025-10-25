@@ -127,75 +127,47 @@ export const memeService = {
     },
 
     // Like a meme (toggle functionality - 1 user 1 like)
-    async likeMeme(memeId: string, userId?: string, anonymousLikeData?: { liked: boolean; wasDisliked: boolean }): Promise<{ liked: boolean; newLikeCount: number }> {
+    async likeMeme(memeId: string, _userId?: string, likeData?: { liked: boolean; wasDisliked: boolean }): Promise<{ liked: boolean; newLikeCount: number }> {
         try {
             // Get current meme
             const meme = await databases.getDocument(DATABASE_ID, MEMES_COLLECTION_ID, memeId);
             const currentLikes = meme.likes || 0;
             const currentDislikes = meme.dislikes || 0;
-            const currentUserLikes = meme.userLikes || [];
-            const currentUserDislikes = meme.userDislikes || [];
 
             let newLikes = currentLikes;
             let newDislikes = currentDislikes;
-            let newUserLikes = [...currentUserLikes];
-            let newUserDislikes = [...currentUserDislikes];
             let liked = false;
 
-            if (userId) {
-                // Authenticated user logic
-                const hasLiked = currentUserLikes.includes(userId);
-                const hasDisliked = currentUserDislikes.includes(userId);
-
-                if (hasLiked) {
-                    // User already liked, so unlike
-                    newUserLikes = currentUserLikes.filter((id: string) => id !== userId);
-                    newLikes = currentLikes - 1;
-                    liked = false;
-                } else {
-                    // User hasn't liked, so like
-                    newUserLikes = [...currentUserLikes, userId];
-                    newLikes = currentLikes + 1;
-                    liked = true;
-
-                    // If user had disliked, remove from dislikes
-                    if (hasDisliked) {
-                        newUserDislikes = currentUserDislikes.filter((id: string) => id !== userId);
-                        newDislikes = Math.max(0, currentDislikes - 1);
-                    }
-                }
-            } else if (anonymousLikeData) {
-                // Anonymous user logic with localStorage tracking
-                liked = anonymousLikeData.liked;
+            if (likeData) {
+                // Both authenticated and anonymous users use localStorage tracking
+                liked = likeData.liked;
 
                 if (liked) {
-                    // Anonymous user is liking
+                    // User is liking
                     newLikes = currentLikes + 1;
 
                     // If they were previously disliking, remove that dislike
-                    if (anonymousLikeData.wasDisliked) {
+                    if (likeData.wasDisliked) {
                         newDislikes = Math.max(0, currentDislikes - 1);
                     }
                 } else {
-                    // Anonymous user is unliking
+                    // User is unliking
                     newLikes = Math.max(0, currentLikes - 1);
                 }
             } else {
-                // Fallback for anonymous users without localStorage data
+                // Fallback - assume they want to like
                 newLikes = currentLikes + 1;
                 liked = true;
             }
 
-            // Update the meme with new counts and user likes
+            // Update the meme with new counts
             await databases.updateDocument(
                 DATABASE_ID,
                 MEMES_COLLECTION_ID,
                 memeId,
                 {
                     likes: newLikes,
-                    dislikes: newDislikes,
-                    userLikes: newUserLikes,
-                    userDislikes: newUserDislikes
+                    dislikes: newDislikes
                 }
             );
 
