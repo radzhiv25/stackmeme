@@ -141,37 +141,17 @@ export const MemeProvider: React.FC<MemeProviderProps> = ({ children, anonymousO
 
     const likeMeme = async (memeId: string) => {
         try {
-            let result;
-
-            if (user?.$id) {
-                // Authenticated user
-                result = await memeService.likeMeme(memeId, user.$id);
-            } else {
-                // Anonymous user - use localStorage tracking
-                const anonymousData = anonymousLikeStorage.toggleLike(memeId);
-                result = await memeService.likeMeme(memeId, undefined, anonymousData);
-            }
+            // Both authenticated and anonymous users use localStorage for toggle functionality
+            const likeData = anonymousLikeStorage.toggleLike(memeId);
+            const result = await memeService.likeMeme(memeId, user?.$id, likeData);
 
             setMemes(prev => prev.map(meme => {
                 if (meme.id === memeId) {
-                    if (user?.$id) {
-                        // Authenticated user - update userLikes array
-                        const newUserLikes = result.liked
-                            ? [...(meme.userLikes || []), user.$id].filter(Boolean)
-                            : (meme.userLikes || []).filter(id => id !== user.$id);
-
-                        return {
-                            ...meme,
-                            likes: result.newLikeCount,
-                            userLikes: newUserLikes
-                        };
-                    } else {
-                        // Anonymous user - just update like count
-                        return {
-                            ...meme,
-                            likes: result.newLikeCount
-                        };
-                    }
+                    // Update like count for all users
+                    return {
+                        ...meme,
+                        likes: result.newLikeCount
+                    };
                 }
                 return meme;
             }));
